@@ -5,8 +5,9 @@
 { config, pkgs, ... }:
 
 {
-
-environment.pathsToLink = [ "/libexec" ]; # links /libexec from derivations to /run/current-system/sw
+#enable adb for non privileged users
+programs.adb.enable = true;
+nix.settings.experimental-features = [ "nix-command" "flakes" ];
 #enable i3
 services.xserver = {
     enable = true;
@@ -36,18 +37,6 @@ virtualisation.libvirtd.enable = true;
 virtualisation.virtualbox.guest.enable = true;
 virtualisation.virtualbox.guest.x11 = true;
 programs.dconf.enable = true;
-
-#enable android
-#pkgs.androidenv.composeAndroidPackages={
-#	config={
-#		android_sdk.accept_license=true;
-#	};
-#	buildToolsVersions=["30.0.3"];
-#	platformVersions=["31" "28"];
-#	abiVersions=["x86" "x86_64" "armeabi-v7a" "arm64-v8a"];
-#};
-
-nix.settings.experimental-features = [ "nix-command" "flakes" ];
   imports =
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
@@ -73,9 +62,12 @@ nix.settings.experimental-features = [ "nix-command" "flakes" ];
   # Select internationalisation properties.
   i18n.defaultLocale = "en_US.UTF-8";
 
+  # Enable the X11 windowing system.
+  #services.xserver.enable = true;
+
   # Enable the GNOME Desktop Environment.
-   services.xserver.displayManager.gdm.enable = true;
-   services.xserver.desktopManager.gnome.enable = true;
+ # services.xserver.displayManager.gdm.enable = true;
+ # services.xserver.desktopManager.gnome.enable = true;
 
   # Configure keymap in X11
   services.xserver = {
@@ -113,14 +105,13 @@ nix.settings.experimental-features = [ "nix-command" "flakes" ];
   users.users.andb = {
     isNormalUser = true;
     description = "andb";
-    extraGroups = ["networkmanager" "wheel" "libvirtd" "user-with-access-to-virtualbox" ];
+    extraGroups = ["adbusers" "networkmanager" "wheel" "libvirtd" "user-with-access-to-virtualbox" ];
     packages = with pkgs; [
-    	android-tools
+	rustc
+	rustup
+    	brightnessctl
     	vscodium
-	flutter
-	jdk11
     	podman
-    	font-awesome
 	dolphin
     	gscreenshot
     	glibc_multi
@@ -141,13 +132,6 @@ nix.settings.experimental-features = [ "nix-command" "flakes" ];
     #  thunderbird
     ];
   };
-  # Enable automatic login for the user.
-  #services.xserver.displayManager.autoLogin.enable = true;
-  #services.xserver.displayManager.autoLogin.user = "andb";
-
-  # Workaround for GNOME autologin: https://github.com/NixOS/nixpkgs/issues/103746#issuecomment-945091229
-  #systemd.services."getty@tty1".enable = false;
-  #systemd.services."autovt@tty1".enable = false;
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
