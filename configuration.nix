@@ -1,52 +1,25 @@
 # Edit this configuration file to define what should be installed on
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
-
 { config, pkgs, ... }:
-
 {
-#enable adb for non privileged users
-programs.adb.enable = true;
-nix.settings.experimental-features = [ "nix-command" "flakes" ];
-#enable i3
-services.xserver = {
-    enable = true;
+#enable wireshark
+programs.wireshark.enable=true;
+#enable memtest
+boot.loader.systemd-boot.memtest86.enable=true;
+#enable for amdgpu graphic card
+#services.xserver.videoDrivers = [ "amdgpu" ];
+#enable steam
+programs.steam = {
+  enable = true;
+  remotePlay.openFirewall = true; # Open ports in the firewall for Steam Remote Play
+  dedicatedServer.openFirewall = true; # Open ports in the firewall for Source Dedicated Server
+};
 
-    desktopManager = {
-      xterm.enable = false;
-    };
-   
-    displayManager = {
-        defaultSession = "none+i3";
-    };
-
-    windowManager.i3 = {
-      enable = true;
-      extraPackages = with pkgs; [
-        dmenu #application launcher most people use
-        i3status # gives you the default i3 status bar
-        i3lock #default i3 screen locker
-        i3blocks #if you are planning on using i3blocks over i3status
-     ];
-    };
-  };
-#enable vbox
-virtualisation.virtualbox.host.enableExtensionPack = true;
-virtualisation.virtualbox.host.enable = true;
-virtualisation.libvirtd.enable = true;
-virtualisation.virtualbox.guest.enable = true;
-virtualisation.virtualbox.guest.x11 = true;
-programs.dconf.enable = true;
-  imports =
-    [ # Include the results of the hardware scan.
-      ./hardware-configuration.nix
-    ];
-
-  # Bootloader.
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
-
-  networking.hostName = "nixos"; # Define your hostname.
+###
+boot.loader.grub.devices=["/dev/sdb"];
+boot.loader.grub.enable=true;
+networking.hostName = "nixos"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 
   # Configure network proxy if necessary
@@ -54,20 +27,31 @@ programs.dconf.enable = true;
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
 
   # Enable networking
-  networking.networkmanager.enable = true;
+networking.networkmanager.enable = true;
 
   # Set your time zone.
-  time.timeZone = "America/Mexico_City";
+time.timeZone = "America/Mexico_City";
 
   # Select internationalisation properties.
-  i18n.defaultLocale = "en_US.UTF-8";
+i18n.defaultLocale = "en_US.UTF-8";
 
-  # Enable the X11 windowing system.
-  #services.xserver.enable = true;
+#enable vbox
+virtualisation.virtualbox.host.enableExtensionPack = true;
+virtualisation.virtualbox.host.enable = true;
+virtualisation.libvirtd.enable = true;
+virtualisation.virtualbox.guest.enable = true;
+virtualisation.virtualbox.guest.x11 = true;
+programs.dconf.enable = true;
 
-  # Enable the GNOME Desktop Environment.
- # services.xserver.displayManager.gdm.enable = true;
- # services.xserver.desktopManager.gnome.enable = true;
+nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  imports =
+    [ # Include the results of the hardware scan.
+      ./hardware-configuration.nix
+    ];
+
+ # programs.hyprland.enable = true;
+ # xdg.portal.enable = true;
+ # xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
 
   # Configure keymap in X11
   services.xserver = {
@@ -100,42 +84,61 @@ programs.dconf.enable = true;
 
   # Enable touchpad support (enabled default in most desktopManager).
   # services.xserver.libinput.enable = true;
+  programs.adb.enable = true;
+    services.xserver = {
+    enable = true;
+
+    desktopManager = {
+      xterm.enable = false;
+    };
+   
+    displayManager = {
+        defaultSession = "none+i3";
+    };
+
+    windowManager.i3 = {
+      enable = true;
+      extraPackages = with pkgs; [
+        dmenu #application launcher most people use
+        i3status # gives you the default i3 status bar
+        i3lock #default i3 screen locker
+        i3blocks #if you are planning on using i3blocks over i3status
+     ];
+    };
+  };
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.andb = {
     isNormalUser = true;
     description = "andb";
-    extraGroups = ["adbusers" "networkmanager" "wheel" "libvirtd" "user-with-access-to-virtualbox" ];
-    packages = with pkgs; [
-	rustc
-	rustup
-    	brightnessctl
-    	vscodium
-    	podman
-	dolphin
-    	gscreenshot
-    	glibc_multi
-    	qemu_kvm
-        libvirt
-    	qemu
-	virt-manager
-    	tmux
-      	firefox
-	neovim
-	polybar
-	feh
-	nodejs
-	gdb
-	gcc
-	git	
-	terminator
+    extraGroups = [ "wireshark" "adbusers" "networkmanager" "wheel" ];
+    packages = with pkgs; [	
+      wireshark
+      libgcrypt
+      vscodium
+      glibc_multi
+      qemu_kvm
+      libvirt
+      qemu
+      virt-manager
+      ripgrep
+      gscreenshot
+      nodejs_18
+      libgccjit	
+      tmux
+      git
+      feh
+      terminator
+      firefox
+      neovim 
+      i3
+      dmenu
     #  thunderbird
     ];
   };
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
-
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
@@ -168,6 +171,8 @@ programs.dconf.enable = true;
   # this value at the release version of the first install of this system.
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "23.05"; # Did you read the comment?
+  system.stateVersion = "23.11"; # Did you read the comment?
 
 }
+  
+
