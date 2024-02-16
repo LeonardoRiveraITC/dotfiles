@@ -193,3 +193,13 @@ exec_always --no-startup-id feh --bg-scale $HOME/Downloads/wallpaperflare.com_wa
 exec_always --no-startup-id polybar
 #volume
 bindsym $mod+Shift exec --no-startup-id dmenu_run
+
+#gaps \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+for_window [class="^.*"] border pixel 0
+#smart_gaps on
+#smart_borders on
+
+gaps inner 10
+gaps outer 3
+set $border-focus #1C2951
+
