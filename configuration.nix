@@ -1,12 +1,40 @@
 # Edit this configuration file to define what should be installed on
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
+
 { config, pkgs, ... }:
 {
+programs.virt-manager.enable = true;
+#virtualisation.spiceUSBRedirection.enable = true;
+#enable jails
+programs.firejail.enable = true;
+#disable sleep
+systemd.targets.sleep.enable = false;
+systemd.targets.suspend.enable = false;
+systemd.targets.hibernate.enable = false;
+systemd.targets.hybrid-sleep.enable = false;
+#virtualisation.libvirtd.allowedBridges=["virbr0" "bridge2"];
+virtualisation.virtualbox.host = {
+  enable = true;
+  enableKvm = false;
+  enableExtensionPack = true;
+
+  enableHardening = true;
+  addNetworkInterface = true;
+};
+
+networking.nftables.enable = true;
+#enable docker
+virtualisation.docker.enable = true;
+virtualisation.docker.rootless = {
+  enable = true;
+  setSocketVariable = true;
+};
+users.extraGroups.docker.members = [ "andb" ];
 #enable wireshark
 programs.wireshark.enable=true;
 #enable memtest
-boot.loader.systemd-boot.memtest86.enable=true;
+boot.loader.grub.memtest86.enable=true;
 #enable for amdgpu graphic card
 #services.xserver.videoDrivers = [ "amdgpu" ];
 #enable steam
@@ -15,9 +43,8 @@ programs.steam = {
   remotePlay.openFirewall = true; # Open ports in the firewall for Steam Remote Play
   dedicatedServer.openFirewall = true; # Open ports in the firewall for Source Dedicated Server
 };
-
 ###
-boot.loader.grub.devices=["/dev/sdb"];
+boot.loader.grub.devices=["/dev/sda"];
 boot.loader.grub.enable=true;
 networking.hostName = "nixos"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
@@ -34,13 +61,7 @@ time.timeZone = "America/Mexico_City";
 
   # Select internationalisation properties.
 i18n.defaultLocale = "en_US.UTF-8";
-
-#enable vbox
-virtualisation.virtualbox.host.enableExtensionPack = true;
-virtualisation.virtualbox.host.enable = true;
 virtualisation.libvirtd.enable = true;
-virtualisation.virtualbox.guest.enable = true;
-virtualisation.virtualbox.guest.x11 = true;
 programs.dconf.enable = true;
 
 nix.settings.experimental-features = [ "nix-command" "flakes" ];
@@ -49,7 +70,7 @@ nix.settings.experimental-features = [ "nix-command" "flakes" ];
       ./hardware-configuration.nix
     ];
 
- # programs.hyprland.enable = true;
+
  # xdg.portal.enable = true;
  # xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
 
@@ -66,7 +87,6 @@ nix.settings.experimental-features = [ "nix-command" "flakes" ];
   services.printing.enable = true;
 
   # Enable sound with pipewire.
-  sound.enable = true;
   hardware.pulseaudio.enable = false;
   security.rtkit.enable = true;
   services.pipewire = {
@@ -111,8 +131,9 @@ nix.settings.experimental-features = [ "nix-command" "flakes" ];
   users.users.andb = {
     isNormalUser = true;
     description = "andb";
-    extraGroups = [ "wireshark" "adbusers" "networkmanager" "wheel" ];
+    extraGroups = [ "vboxusers" "docker" "libvirtd" "wireshark" "adbusers" "networkmanager" "wheel" ];
     packages = with pkgs; [	
+      picom
       wireshark
       libgcrypt
       vscodium
@@ -120,7 +141,6 @@ nix.settings.experimental-features = [ "nix-command" "flakes" ];
       qemu_kvm
       libvirt
       qemu
-      virt-manager
       ripgrep
       gscreenshot
       nodejs_18
@@ -130,9 +150,10 @@ nix.settings.experimental-features = [ "nix-command" "flakes" ];
       feh
       terminator
       firefox
-      neovim 
       i3
       dmenu
+      obsidian
+      neovim
     #  thunderbird
     ];
   };
@@ -141,6 +162,8 @@ nix.settings.experimental-features = [ "nix-command" "flakes" ];
   nixpkgs.config.allowUnfree = true;
   # List packages installed in system profile. To search, run:
   # $ nix search wget
+
+
   environment.systemPackages = with pkgs; [
   #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
   #  wget
@@ -173,6 +196,9 @@ nix.settings.experimental-features = [ "nix-command" "flakes" ];
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
   system.stateVersion = "23.11"; # Did you read the comment?
 
+
+
 }
-  
+
+
 
