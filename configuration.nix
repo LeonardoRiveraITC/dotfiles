@@ -4,6 +4,17 @@
 
 { config, pkgs, ... }:
 {
+services.udev = {
+
+  packages = with pkgs; [
+    qmk
+    qmk-udev-rules # the only relevant
+    qmk_hid
+    via
+    vial
+  ]; # packages
+
+};
 programs.virt-manager.enable = true;
 #virtualisation.spiceUSBRedirection.enable = true;
 #enable jails
@@ -11,16 +22,27 @@ programs.firejail.enable = true;
 #disable sleep
 systemd.targets.sleep.enable = false;
 systemd.targets.suspend.enable = false;
+hardware.keyboard.qmk.enable = true;
 systemd.targets.hibernate.enable = false;
 systemd.targets.hybrid-sleep.enable = false;
 #virtualisation.libvirtd.allowedBridges=["virbr0" "bridge2"];
 virtualisation.virtualbox.host = {
-  enable = true;
+  enable = false;
   enableKvm = false;
   enableExtensionPack = true;
 
   enableHardening = true;
   addNetworkInterface = true;
+};
+
+systemd.user.services.fanstart = {
+  description = "Startfans";
+  serviceConfig.User = "root";
+  script = ''
+  	echo "1" > /sys/class/drm/card0/device/hwmon/hwmon0/pwm1_enable
+	echo "128" > /sys/class/drm/card0/device/hwmon/hwmon0/pwm1
+  '';
+  wantedBy = [ "multi-user.target" ]; # starts after login
 };
 
 networking.nftables.enable = true;
@@ -76,7 +98,7 @@ nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
   # Configure keymap in X11
   services.xserver = {
-    layout = "latam";
+   layout = "us";
     xkbVariant = "";
   };
 
@@ -199,6 +221,3 @@ nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
 
 }
-
-
-
